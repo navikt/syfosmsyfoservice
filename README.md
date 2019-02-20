@@ -1,5 +1,5 @@
 # SYFO Sykmelding Apprec
-This project contains sends the apprec to emottak
+This project contains reads mq for SM2013
 
 
 # Technologies used
@@ -16,12 +16,11 @@ To build locally and run the integration tests you can simply run `./gradlew sha
 `gradlew.bat shadowJar`
 
 #### Creating a docker image
-Creating a docker image should be as simple as `docker build -t syfosmapprec .`
+Creating a docker image should be as simple as `docker build -t syfosmmqmock .`
 
 ## Contact us
 ### Code/project related questions can be sent to
 * Kevin Sillerud, `kevin.sillerud@nav.no`
-* Anders Østby, `anders.ostby@nav.no`
 * Joakim Kartveit, `joakim.kartveit@nav.no`
 
 ### For NAV employees
