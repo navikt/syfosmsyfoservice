@@ -1,5 +1,10 @@
 package no.nav.syfo
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
+import com.fasterxml.jackson.module.kotlin.readValue
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.application.Application
 import io.ktor.routing.routing
 import io.ktor.server.engine.embeddedServer
@@ -15,7 +20,9 @@ import no.nav.syfo.api.registerNaisApi
 import no.nav.syfo.util.connectionFactory
 import no.trygdeetaten.xml.eiff._1.XMLEIFellesformat
 import no.trygdeetaten.xml.eiff._1.XMLMottakenhetBlokk
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.io.StringReader
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -25,28 +32,37 @@ import javax.jms.TextMessage
 
 data class ApplicationState(var running: Boolean = true, var initialized: Boolean = false)
 
-private val log = LoggerFactory.getLogger("no.nav.syfoapprec")
+val log: Logger = LoggerFactory.getLogger("no.nav.syfo.smmqmock")
+val objectMapper: ObjectMapper = ObjectMapper().apply {
+    registerKotlinModule()
+    registerModule(JavaTimeModule())
+    configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
+}
 
 fun main(args: Array<String>) = runBlocking(Executors.newFixedThreadPool(2).asCoroutineDispatcher()) {
-    val env = Environment()
+    val config: ApplicationConfig = objectMapper.readValue(File(System.getenv("CONFIG_FILE")))
+    val credentials: VaultCredentials = objectMapper.readValue(vaultApplicationPropertiesPath.toFile())
     val applicationState = ApplicationState()
 
-    val applicationServer = embeddedServer(Netty, env.applicationPort) {
+    val applicationServer = embeddedServer(Netty, config.applicationPort) {
         initRouting(applicationState)
     }.start(wait = false)
 
-    connectionFactory(env).createConnection(env.mqUsername, env.mqPassword).use { connection ->
+    connectionFactory(config).createConnection(credentials.mqUsername, credentials.mqPassword).use { connection ->
         connection.start()
 
         try {
-            val listeners = (1..env.applicationThreads).map {
+            val listeners = (1..config.applicationThreads).map {
                 launch {
 
                     val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
-                    val receiptQueue = session.createQueue(env.apprecQueue)
-                    val receiptConsumer = session.createConsumer(receiptQueue)
+                    val infotrygdOppdateringQueue = session.createQueue("queue:///${config.infotrygdOppdateringQueue}?targetClient=1")
+                    val infotrygdOppdateringConsumer = session.createConsumer(infotrygdOppdateringQueue)
 
-                    blockingApplicationLogic(applicationState, receiptConsumer)
+                    val apprecQueue = session.createQueue(config.apprecQueue)
+                    val apprecConsumer = session.createConsumer(apprecQueue)
+
+                    blockingApplicationLogic(applicationState, apprecConsumer, infotrygdOppdateringConsumer)
                 }
             }.toList()
 
@@ -62,9 +78,9 @@ fun main(args: Array<String>) = runBlocking(Executors.newFixedThreadPool(2).asCo
     }
 }
 
-suspend fun blockingApplicationLogic(applicationState: ApplicationState, receiptConsumer: MessageConsumer) {
+suspend fun blockingApplicationLogic(applicationState: ApplicationState, apprecConsumer: MessageConsumer, receiptConsumer: MessageConsumer) {
     while (applicationState.running) {
-        val message = receiptConsumer.receiveNoWait()
+        val message = apprecConsumer.receiveNoWait()
         if (message == null) {
             delay(100)
             continue

@@ -14,7 +14,6 @@ import org.spekframework.spek2.style.specification.describe
 
 object SelftestSpek : Spek({
     val applicationState = ApplicationState()
-    val env = Environment()
 
     describe("Calling selftest with successful liveness and readyness tests") {
         with(TestApplicationEngine()) {
