@@ -82,7 +82,8 @@ suspend fun blockingApplicationLogic(applicationState: ApplicationState, syfoser
                 is TextMessage -> Message.text
                 else -> throw RuntimeException("Incoming message needs to be a byte message or text message")
             }
-            log.info("message is here now Unmarshaller it")
+            log.info("message is here")
+            // TODO unmarshell message
         } catch (e: Exception) {
             log.error("Exception caught while handling message", e)
         }
