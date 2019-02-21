@@ -4,5 +4,5 @@
   "mqGatewayName": "MPLSC03",
   "mqChannelName": "P_SYFOSMMQMOCK",
   "infotrygdOppdateringQueue" : "QA.P_SYFOSMITOPPDATERING.INFOTRYGD_OPPDATERING",
-  "apprecQueueName": "QA.P_SYFOSMAPPREC.UTSENDING"
+  "apprecQueue": "QA.P_SYFOSMAPPREC.UTSENDING"
 }
