@@ -12,8 +12,7 @@ data class ApplicationConfig(
     val mqPort: Int,
     val mqGatewayName: String,
     val mqChannelName: String,
-    val infotrygdOppdateringQueue: String,
-    val apprecQueue: String
+    val smSyfoserviceQueue: String
 )
 
 data class VaultCredentials(

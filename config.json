@@ -2,7 +2,6 @@
   "mqHostname": "a01apvl062.adeo.no",
   "mqPort": 1414,
   "mqGatewayName": "MPLSC03",
-  "mqChannelName": "P_SYFOSMMQMOCK",
-  "infotrygdOppdateringQueue" : "QA.P_SYFOSMITOPPDATERING.INFOTRYGD_OPPDATERING",
-  "apprecQueue": "QA.P_SYFOSMAPPREC.UTSENDING"
+  "mqChannelName": "P_SYFOSMSYFOSERVICE",
+  "smSyfoserviceQueue" : "QA.P_SYFOSMSYFOSERVICE.MOCKSYFO"
 }

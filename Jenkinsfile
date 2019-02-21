@@ -9,7 +9,7 @@ pipeline {
         }
 
     environment {
-        APPLICATION_NAME = 'syfosmmqmock'
+        APPLICATION_NAME = 'syfosmsyfoservice'
         DOCKER_SLUG = 'syfo'
     }
 

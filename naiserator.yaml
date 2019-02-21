@@ -1,12 +1,12 @@
 apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
-  name: "syfosmmqmock"
+  name: "syfosmsyfoservice"
   namespace: "default"
   labels:
     team: "teamsykefravr"
 spec:
-  image: "repo.adeo.no:5443/syfo/syfosmmqmock:@@VERSION@@"
+  image: "repo.adeo.no:5443/syfo/syfosmsyfoservice:@@VERSION@@"
   replicas:
     min: 1
     max: 4

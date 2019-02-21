@@ -1,5 +1,5 @@
-# SYFO Sykmelding Apprec
-This project contains reads mq for SM2013
+# SYFO Sykmelding SYFO MQ 
+This project contains application that reads mq messages for syfoservice in skygge-prod
 
 
 # Technologies used
@@ -16,7 +16,7 @@ To build locally and run the integration tests you can simply run `./gradlew sha
 `gradlew.bat shadowJar`
 
 #### Creating a docker image
-Creating a docker image should be as simple as `docker build -t syfosmmqmock .`
+Creating a docker image should be as simple as `docker build -t syfosmsyfoservice .`
 
 ## Contact us
 ### Code/project related questions can be sent to

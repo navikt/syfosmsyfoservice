@@ -13,17 +13,11 @@ import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import net.logstash.logback.argument.StructuredArguments
-import no.kith.xmlstds.apprec._2004_11_21.XMLAppRec
-import no.kith.xmlstds.apprec._2004_11_21.XMLInst
 import no.nav.syfo.api.registerNaisApi
 import no.nav.syfo.util.connectionFactory
-import no.trygdeetaten.xml.eiff._1.XMLEIFellesformat
-import no.trygdeetaten.xml.eiff._1.XMLMottakenhetBlokk
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
-import java.io.StringReader
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.jms.MessageConsumer
@@ -32,7 +26,7 @@ import javax.jms.TextMessage
 
 data class ApplicationState(var running: Boolean = true, var initialized: Boolean = false)
 
-val log: Logger = LoggerFactory.getLogger("no.nav.syfo.smmqmock")
+val log: Logger = LoggerFactory.getLogger("no.nav.syfo.smsyfoservice")
 val objectMapper: ObjectMapper = ObjectMapper().apply {
     registerKotlinModule()
     registerModule(JavaTimeModule())
@@ -56,13 +50,10 @@ fun main(args: Array<String>) = runBlocking(Executors.newFixedThreadPool(2).asCo
                 launch {
 
                     val session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)
-                    val infotrygdOppdateringQueue = session.createQueue("queue:///${config.infotrygdOppdateringQueue}?targetClient=1")
-                    val infotrygdOppdateringConsumer = session.createConsumer(infotrygdOppdateringQueue)
+                    val syfoserviceQueue = session.createQueue(config.smSyfoserviceQueue)
+                    val syfoserviceConsumer = session.createConsumer(syfoserviceQueue)
 
-                    val apprecQueue = session.createQueue(config.apprecQueue)
-                    val apprecConsumer = session.createConsumer(apprecQueue)
-
-                    blockingApplicationLogic(applicationState, apprecConsumer, infotrygdOppdateringConsumer)
+                    blockingApplicationLogic(applicationState, syfoserviceConsumer)
                 }
             }.toList()
 
@@ -78,30 +69,20 @@ fun main(args: Array<String>) = runBlocking(Executors.newFixedThreadPool(2).asCo
     }
 }
 
-suspend fun blockingApplicationLogic(applicationState: ApplicationState, apprecConsumer: MessageConsumer, receiptConsumer: MessageConsumer) {
+suspend fun blockingApplicationLogic(applicationState: ApplicationState, syfoserviceConsumer: MessageConsumer) {
     while (applicationState.running) {
-        val apprecMessage = apprecConsumer.receiveNoWait()
-        if (apprecMessage == null) {
+        val Message = syfoserviceConsumer.receiveNoWait()
+        if (Message == null) {
             delay(100)
             continue
         }
 
         try {
-            val inputMessageText = when (apprecMessage) {
-                is TextMessage -> apprecMessage.text
+            val inputMessageText = when (Message) {
+                is TextMessage -> Message.text
                 else -> throw RuntimeException("Incoming message needs to be a byte message or text message")
             }
-            val fellesformat = fellesformatUnmarshaller.unmarshal(StringReader(inputMessageText)) as XMLEIFellesformat
-            val apprec: XMLAppRec = fellesformat.get()
-            val mottakEnhetBlokk: XMLMottakenhetBlokk = fellesformat.get()
-            val logValues = arrayOf(
-                    StructuredArguments.keyValue("smId", mottakEnhetBlokk.ediLoggId),
-                    StructuredArguments.keyValue("Id", apprec.originalMsgId.id),
-                    StructuredArguments.keyValue("orgNr", apprec.receiver.hcp.inst.extractOrganizationNumber())
-            )
-            val logKeys = logValues.joinToString(prefix = "(", postfix = ")", separator = ",") { "{}" }
-
-            log.info("Message is read $logKeys", *logValues)
+            log.info("message is here now Unmarshaller it")
         } catch (e: Exception) {
             log.error("Exception caught while handling message", e)
         }
@@ -115,12 +96,3 @@ fun Application.initRouting(applicationState: ApplicationState) {
         registerNaisApi(readynessCheck = { applicationState.initialized }, livenessCheck = { applicationState.running })
     }
 }
-
-inline fun <reified T> XMLEIFellesformat.get(): T = any.find { it is T } as T
-
-fun XMLInst.extractOrganizationNumber(): String? =
-        if (typeId.v == "ENH") {
-            id
-        } else {
-            additionalId.find { it.type.v == "ENH" }?.id
-        }
