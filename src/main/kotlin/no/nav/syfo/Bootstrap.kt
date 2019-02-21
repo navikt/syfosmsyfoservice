@@ -80,15 +80,15 @@ fun main(args: Array<String>) = runBlocking(Executors.newFixedThreadPool(2).asCo
 
 suspend fun blockingApplicationLogic(applicationState: ApplicationState, apprecConsumer: MessageConsumer, receiptConsumer: MessageConsumer) {
     while (applicationState.running) {
-        val message = apprecConsumer.receiveNoWait()
-        if (message == null) {
+        val apprecMessage = apprecConsumer.receiveNoWait()
+        if (apprecMessage == null) {
             delay(100)
             continue
         }
 
         try {
-            val inputMessageText = when (message) {
-                is TextMessage -> message.text
+            val inputMessageText = when (apprecMessage) {
+                is TextMessage -> apprecMessage.text
                 else -> throw RuntimeException("Incoming message needs to be a byte message or text message")
             }
             val fellesformat = fellesformatUnmarshaller.unmarshal(StringReader(inputMessageText)) as XMLEIFellesformat
