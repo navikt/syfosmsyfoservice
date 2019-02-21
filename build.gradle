@@ -5,7 +5,7 @@ buildscript {
     ext.logstash_logback_encoder = '5.2'
     ext.prometheus_version = '0.5.0'
     ext.spek_version = "2.0.0-alpha.1"
-    ext.ibm_mq_version = '9.1.0.0'
+    ext.ibm_mq_version = '9.0.5.0'
     ext.kith_hodemelding_version = '1.1'
     ext.kith_apprec_version = '1.1'
     ext.kluent_version = '1.39'
@@ -28,7 +28,7 @@ plugins {
 }
 
 group 'no.nav.syfo'
-version '1.0.2-SNAPSHOT'
+version '1.0.0'
 
 jar.manifest.attributes("Main-Class" : "no.nav.syfo.BootstrapKt")
 
