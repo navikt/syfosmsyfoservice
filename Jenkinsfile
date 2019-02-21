@@ -42,9 +42,11 @@ pipeline {
             }
         }
         stage('deploy to production') {
+            steps {
                 dockerUtils action: 'createPushImage'
                 deployApp action: 'kubectlDeploy', cluster: 'prod-fss', file: 'naiserator.yaml'
                 githubStatus action: 'tagRelease'
+            }
         }
     }
     post {
