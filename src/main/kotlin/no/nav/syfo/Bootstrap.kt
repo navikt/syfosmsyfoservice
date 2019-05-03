@@ -83,7 +83,6 @@ suspend fun blockingApplicationLogic(applicationState: ApplicationState, syfoser
                 else -> throw RuntimeException("Incoming message needs to be a byte message or text message")
             }
             log.info("message is here")
-            log.info("$inputMessageText")
             // TODO unmarshell message
         } catch (e: Exception) {
             log.error("Exception caught while handling message", e)
