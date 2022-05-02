@@ -1,3 +1,5 @@
+No longer in use
+
 # SYFO Sykmelding SYFO MQ 
 This project contains application that reads mq messages for syfoservice in skygge-prod
 
